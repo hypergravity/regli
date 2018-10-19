@@ -117,6 +117,9 @@ class RegularGrid():
         edges_ind = np.array([bisect_interval(self.grids[_], pos[_]) for _ in range(self.ndim)])
         edges = np.array([(self.grids[i][edges_ind[i]]) for i in range(self.ndim)])
 
+        if np.any(edges_ind[:, 0] < -1):
+            return None
+
         # make codes
         codes = np.array([_ for _ in product((0, 1), repeat=self.ndim)])
 
