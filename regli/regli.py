@@ -65,15 +65,15 @@ class RegularGrid():
         assert values.ndim == 2
         self.values = np.array(values)
 
-    def interp3(self, pos):
+    def interp3(self, pos, null_value=np.nan):
 
         e1 = bisect_interval(self.grids[0], pos[0])
         e2 = bisect_interval(self.grids[1], pos[1])
         e3 = bisect_interval(self.grids[2], pos[2])
 
         if e1[0] < -1 or e2[0] < -1 or e3[0] < -1:
-            """ out of bounds """
-            return None
+            # out of bounds
+            return np.ones((self.values.shape[1],)) * null_value
         else:
             # calculate nodes
             p1_0 = self.grids[0][e1[0]]
@@ -111,14 +111,15 @@ class RegularGrid():
 
             return value_interp
 
-    def interpn(self, pos):
+    def interpn(self, pos, null_value=np.nan):
         pos = np.array(pos).flatten()
         # ndim x 2 edge array
         edges_ind = np.array([bisect_interval(self.grids[_], pos[_]) for _ in range(self.ndim)])
         edges = np.array([(self.grids[i][edges_ind[i]]) for i in range(self.ndim)])
 
         if np.any(edges_ind[:, 0] < -1):
-            return None
+            # out of bounds
+            return np.ones((self.values.shape[1],))*null_value
 
         # make codes
         codes = np.array([_ for _ in product((0, 1), repeat=self.ndim)])
