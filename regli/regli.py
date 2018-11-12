@@ -65,6 +65,38 @@ class RegularGrid():
         assert values.ndim == 2
         self.values = np.array(values)
 
+    def interp2(self, pos, null_value=np.nan):
+
+        e1 = bisect_interval(self.grids[0], pos[0])
+        e2 = bisect_interval(self.grids[1], pos[1])
+
+        if e1[0] < -1 or e2[0] < -1:
+            # out of bounds
+            return np.ones((self.values.shape[1],)) * null_value
+        else:
+            # calculate nodes
+            p1_0 = self.grids[0][e1[0]]
+            p1_1 = self.grids[0][e1[1]]
+            p2_0 = self.grids[1][e2[0]]
+            p2_1 = self.grids[1][e2[1]]
+
+            v_tot = (p1_1 - p1_0) * (p2_1 - p2_0)
+            v_00 = (p1_1 - pos[0]) * (p2_1 - pos[1])
+            v_01 = (p1_1 - pos[0]) * (pos[1] - p2_0)
+            v_10 = (pos[0] - p1_0) * (p2_1 - pos[1])
+            v_11 = (pos[0] - p1_0) * (pos[1] - p2_0)
+            # v_000+v_001+v_010+v_011+v_100+v_101+v_110+v_111
+
+            i_00 = self.ind_dict[e1[0], e2[0]]
+            i_01 = self.ind_dict[e1[0], e2[1]]
+            i_10 = self.ind_dict[e1[1], e2[0]]
+            i_11 = self.ind_dict[e1[1], e2[1]]
+
+            w = np.array([v_00, v_01, v_10, v_11]).reshape(-1, 1) / v_tot
+            value_interp = np.sum(self.values[np.array([i_00, i_01, i_10, i_11])] * w, axis=0)
+
+            return value_interp
+
     def interp3(self, pos, null_value=np.nan):
 
         e1 = bisect_interval(self.grids[0], pos[0])
