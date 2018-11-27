@@ -3,7 +3,7 @@ from distutils.core import setup
 if __name__ == '__main__':
     setup(
         name='regli',
-        version='0.0.1',
+        version='0.0.2',
         author='Bo Zhang',
         author_email='bzhang@mpia.de',
         # py_modules=['bopy','spec','core'],
