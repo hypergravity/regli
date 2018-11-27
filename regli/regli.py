@@ -36,9 +36,11 @@ def grid_to_meshflat(*grids):
 
 def bisect_interval(edges=[1, 2, 3], x=.1):
     """ return the nearest edges using bisect """
-    if edges[0] <= x <= edges[-1]:
+    if edges[0] < x <= edges[-1]:
         _ = bisect.bisect_left(edges, x)
         return _ - 1, _
+    elif edges[0] == x:
+        return 0, 1
     else:
         # null value, returned when x is not in bounds
         return -9, -9
@@ -62,8 +64,17 @@ class RegularGrid():
 
     def set_values(self, values):
         values = np.array(values)
-        assert values.ndim == 2
-        self.values = np.array(values)
+        assert values.ndim in (1, 2)
+        if values.ndim == 2:
+            self.values = np.array(values)
+        elif values.ndim == 1:
+            assert len(values) == len(self.flats)
+            self.values = np.array(values.reshape(-1, 1))
+        else:
+            raise ValueError("Values shape not correct!")
+
+    def interpns(self, poss):
+        return np.array([self.interpn(pos) for pos in poss])
 
     def interp2(self, pos, null_value=np.nan):
 
