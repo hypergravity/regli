@@ -27,7 +27,7 @@ from regli import Regli         # import Regli
 x1 = np.linspace(-1, 1, 30)     # construct grid coordinates
 x2 = np.linspace(-1, 1, 30)
 x3 = np.linspace(-1, 1, 30)
-regli = RegularGrid(x1, x2, x3) # initiate regli using coordinates
+regli = Regli(x1, x2, x3) # initiate regli using coordinates
 f = lambda _x1, _x2, _x3: _x1 + _x2 + _x3   # an arbitrary function of coordinates
 
 flats = regli.flats             # regli.flats stores flattened coordinates of ND grid
