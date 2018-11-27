@@ -60,16 +60,24 @@ class RegularGrid():
         self.flats_ind = _[5]
         self.ind_dict = _[6]
 
+        self.grid_shape = tuple([len(g) for g in grids])
+        self.value_shape = 1
         # self.set_values(values)
+
+    @property
+    def rgi_shape(self):
+        return (*self.grid_shape, self.value_shape)
 
     def set_values(self, values):
         values = np.array(values)
         assert values.ndim in (1, 2)
         if values.ndim == 2:
             self.values = np.array(values)
+            self.value_shape = self.values.shape[1]
         elif values.ndim == 1:
             assert len(values) == len(self.flats)
             self.values = np.array(values.reshape(-1, 1))
+            self.value_shape = 1
         else:
             raise ValueError("Values shape not correct!")
 
