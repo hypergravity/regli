@@ -11,7 +11,7 @@ pip install git+git://github.com/hypergravity/regli
 
 
 ```python
-from regli.regli import test
+from regli import test
 test()
 ```
 output:
