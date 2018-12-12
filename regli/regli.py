@@ -7,8 +7,19 @@ Created on Mon Sep 24 14:24:15 2018
 """
 
 import bisect
-import numpy as np
 from itertools import product
+
+import numpy as np
+from scipy.optimize import least_squares
+from emcee import EnsembleSampler
+
+from .regress import costfun, default_lnpost
+
+
+def rand_pos(p0, nwalkers, eps=.1):
+    p0 = np.array(p0)
+    # do a 0.1 mag rand
+    return [p0 + (np.random.rand(*p0.shape)-0.5)*2*eps for i in range(nwalkers)]
 
 
 def grid_to_meshflat(*grids):
@@ -63,6 +74,8 @@ class RegularGrid():
         self.grid_shape = tuple([len(g) for g in grids])
         self.value_shape = 1
         # self.set_values(values)
+
+        self.me = 0.
 
     @property
     def rgi_shape(self):
@@ -202,6 +215,30 @@ class RegularGrid():
 
     def __call__(self, *args):
         return self.interpn(*args)
+
+    def regress(self, x0, obs, obs_err, *args, **kwargs):
+        return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
+
+    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=100, n_step=1000, lnpost=None, pos_eps=.1, full=True):
+        if lnpost is None:
+            lnpost = default_lnpost
+
+        ndim = self.ndim
+        nwalkers = 2 * ndim
+
+        sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost, args=(self, obs, obs_err))
+
+        pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
+        pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
+
+        p1 = np.median(pos, axis=0)
+        pos1 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
+        pos, prob, state = sampler.run_mcmc(pos1, n_step)
+
+        if full:
+            return sampler, pos, prob, state
+
+        return sampler
 
 
 def test():
