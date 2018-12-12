@@ -219,7 +219,7 @@ class RegularGrid():
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=100, n_step=1000, lnpost=None, pos_eps=.1, full=True):
+    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=100, n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
         if lnpost is None:
             lnpost = default_lnpost
 
@@ -230,8 +230,13 @@ class RegularGrid():
 
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
         pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
+        sampler.reset()                 # important!
 
-        p1 = np.median(pos, axis=0)
+        if shrink == "max":
+            p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
+        else:
+            p1 = np.median(pos, axis=0)
+
         pos1 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
         pos, prob, state = sampler.run_mcmc(pos1, n_step)
 
