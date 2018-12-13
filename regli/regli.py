@@ -215,7 +215,12 @@ class RegularGrid():
         return v_interp
 
     def __call__(self, *args):
-        return self.interpn(*args)
+        if self.ndim == 3:
+            return self.interp3(*args)
+        elif self.ndim == 2:
+            return self.interp2(*args)
+        else:
+            return self.interpn(*args)
 
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
