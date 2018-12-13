@@ -12,6 +12,7 @@ from itertools import product
 import numpy as np
 from scipy.optimize import least_squares
 from emcee import EnsembleSampler
+import collections
 
 from .regress import costfun, default_lnpost
 
@@ -219,7 +220,8 @@ class RegularGrid():
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=100, n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
+    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=(100, 100), n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
+
         if lnpost is None:
             lnpost = default_lnpost
 
@@ -229,21 +231,52 @@ class RegularGrid():
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost, args=(self, obs, obs_err))
 
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
-        pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
-        sampler.reset()                 # important!
 
-        if shrink == "max":
-            p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
+        if isinstance(n_burnin, collections.Iterable):
+            # multiple burn-ins
+            for n_burnin_ in n_burnin:
+                # run mcmc
+                pos, prob, state = sampler.run_mcmc(pos0, n_burnin_)
+
+                # shrink to a new position
+                if shrink == "max":
+                    p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
+                else:
+                    p1 = np.median(pos, axis=0)
+
+                # reset sampler
+                sampler.reset()
+
+                # randomly generate new start position
+                pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
+
         else:
-            p1 = np.median(pos, axis=0)
+            # single burn-in
+            # run mcmc
+            pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
 
-        pos1 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
-        pos, prob, state = sampler.run_mcmc(pos1, n_step)
+            # shrink to a new position
+
+            if shrink == "max":
+                p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
+            else:
+                p1 = np.median(pos, axis=0)
+
+            # reset sampler
+            sampler.reset()
+
+            # randomly generate new start position
+            pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
+
+        # run mcmc
+        pos, prob, state = sampler.run_mcmc(pos0, n_step)
 
         if full:
+            # return full result
             return sampler, pos, prob, state
-
-        return sampler
+        else:
+            # return sampler only
+            return sampler
 
 
 def test():
