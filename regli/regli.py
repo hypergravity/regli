@@ -14,7 +14,7 @@ from scipy.optimize import least_squares
 from emcee import EnsembleSampler
 import collections
 
-from .regress import costfun, default_lnpost
+from .regress import costfun, default_lnpost, best_match
 
 
 def rand_pos(p0, nwalkers, eps=.1):
@@ -220,22 +220,30 @@ class RegularGrid():
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, p0, obs, obs_err=0, n_burnin=(100, 100), n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
+    def run_mcmc(self, obs, obs_err=0, p0=None, n_burnin=(100, 100), n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
+        if p0 is None:
+            p0 = self.best_match(obs, obs_err)
+            print("@Regli.best_match: ", p0)
 
         if lnpost is None:
             lnpost = default_lnpost
+            print("@Regli: using the default *lnpost* function...")
 
+        # set parameters
         ndim = self.ndim
         nwalkers = 2 * ndim
 
+        # initiate sampler
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost, args=(self, obs, obs_err))
 
+        # initial position
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
 
         if isinstance(n_burnin, collections.Iterable):
             # multiple burn-ins
             for n_burnin_ in n_burnin:
                 # run mcmc
+                print("@Regli: running burn-in [{}]...".format(n_burnin_))
                 pos, prob, state = sampler.run_mcmc(pos0, n_burnin_)
 
                 # shrink to a new position
@@ -253,6 +261,7 @@ class RegularGrid():
         else:
             # single burn-in
             # run mcmc
+            print("@Regli: running burn-in [{}]...".format(n_burnin))
             pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
 
             # shrink to a new position
@@ -269,6 +278,7 @@ class RegularGrid():
             pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
 
         # run mcmc
+        print("@Regli: running chains [{}]...".format(n_step))
         pos, prob, state = sampler.run_mcmc(pos0, n_step)
 
         if full:
@@ -277,6 +287,12 @@ class RegularGrid():
         else:
             # return sampler only
             return sampler
+
+    def best_match(self, obs, obs_err):
+        """ return the best matched position
+        """
+        ind_maxlnpost = best_match(self.values, self.me, obs, obs_err)
+        return self.flats[ind_maxlnpost]
 
 
 def test():
