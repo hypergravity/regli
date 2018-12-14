@@ -1,1 +1,1 @@
-from .regli import RegularGrid as Regli, test
+from .regli import Regli, test

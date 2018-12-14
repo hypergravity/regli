@@ -58,7 +58,7 @@ def bisect_interval(edges=[1, 2, 3], x=.1):
         return -9, -9
 
 
-class RegularGrid():
+class Regli():
     """ Regular Grid Linear Interpolator """
 
     def __init__(self, *grids):
@@ -77,6 +77,54 @@ class RegularGrid():
         # self.set_values(values)
 
         self.me = 0.
+
+    @staticmethod
+    def init_from_flats(input_flats):
+        """ try to parse flats and return a Regli instance
+        This is a slow process and takes 86 min to parse a 400,000 point grid.
+
+        Parameters
+        ----------
+        input_flats:
+            flatten
+
+        Return
+        ------
+
+        """
+
+        # determine n_dim
+        ndim = input_flats.shape[1]
+
+        # determine grid
+        grids = [np.unique(input_flats[:, i]) for i in range(ndim)]
+
+        # initiate Regli
+        r = Regli(*grids)
+
+        # determine eps
+        eps_auto = np.min([np.min(np.diff(grid)) for grid in grids]) * 0.3
+
+        # determine n_flats [number of grid points]
+        nrow = np.prod(r.grid_shape)
+        # ind_values = np.zeros((nrow,), np.int)
+
+        for i in range(len(r.flats)):
+            # for each flat
+            flat_ = r.flats[i]
+            flat_ind_ = r.flats_ind[i]
+
+            # evaluate norm, see if data exists
+            norm_ = np.linalg.norm(input_flats - flat_, np.inf, axis=1)
+            if np.min(norm_) < eps_auto:
+                # data exists
+                r.ind_dict[tuple(flat_ind_)] = np.argmin(norm_)
+            else:
+                # data missing
+                r.ind_dict[tuple(flat_ind_)] = None
+                print("@Regli: grid value missing --> ", flat_)
+
+        return r
 
     @property
     def rgi_shape(self):
@@ -125,6 +173,9 @@ class RegularGrid():
             i_10 = self.ind_dict[e1[1], e2[0]]
             i_11 = self.ind_dict[e1[1], e2[1]]
 
+            if None in (i_00, i_01, i_10, i_11):
+                return np.ones((self.values.shape[1],)) * null_value
+
             w = np.array([v_00, v_01, v_10, v_11]).reshape(-1, 1) / v_tot
             value_interp = np.sum(self.values[np.array([i_00, i_01, i_10, i_11])] * w, axis=0)
 
@@ -168,6 +219,10 @@ class RegularGrid():
             i_110 = self.ind_dict[e1[1], e2[1], e3[0]]
             i_111 = self.ind_dict[e1[1], e2[1], e3[1]]
 
+            if None in (i_000, i_001, i_010, i_011, i_100, i_101, i_110, i_111):
+                return np.ones((self.values.shape[1],)) * null_value
+
+
             w = np.array([v_000, v_001, v_010, v_011, v_100, v_101, v_110, v_111]).reshape(-1, 1) / v_tot
             # specs = spec[np.array([i_000, i_001, i_010, i_011, i_100, i_101, i_110, i_111])]
             # figure();plot(spec_wm);plot(specs.T)
@@ -200,7 +255,11 @@ class RegularGrid():
         _ind_neighb = np.arange(n_dim)
 
         for i_neighb in range(n_neighb):
-            v_neighb[i_neighb] = self.values[self.ind_dict[tuple(edges_ind[_ind_neighb, codes[i_neighb]])]]
+            ind_value = self.ind_dict[tuple(edges_ind[_ind_neighb, codes[i_neighb]])]
+            if ind_value is None:
+                # out of bounds
+                return np.ones((self.values.shape[1],)) * null_value
+            v_neighb[i_neighb] = self.values[ind_value]
             w_neighb[0, i_neighb] = np.prod(frac_dist[_ind_neighb, codes[i_neighb]])
             # verbose #
             # print("fracdist", frac_dist)
