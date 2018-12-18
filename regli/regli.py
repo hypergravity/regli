@@ -14,7 +14,7 @@ from scipy.optimize import least_squares
 from emcee import EnsembleSampler
 import collections
 
-from .regress import costfun, default_lnpost, best_match
+from .regress import costfun, default_lnlike, best_match
 
 
 def rand_pos(p0, nwalkers, eps=.1):
@@ -284,31 +284,84 @@ class Regli():
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, obs, obs_err=0, p0=None, n_burnin=(100, 100),
-                 n_step=1000, lnpost=None, pos_eps=.1, threads=1, full=True,
+    def run_mcmc(self, obs, obs_err=0, obs_tag=None, p0=None, n_burnin=(100, 100),
+                 n_step=1000, lnlike=None, lnprior=None, pos_eps=.1, full=True,
                  shrink="max"):
-        # TODO: lnprior, obs_tag
+        """ run MCMC for (obs, obs_err, obs_tag)
+
+        Parameters
+        ----------
+        obs:
+            observable
+        obs_err:
+            error of observation
+        obs_tag:
+            array(size(obs), 1 for good, 0 for bad.
+        p0:
+            initial points
+        n_burnin:
+            int/sequence, do 1 or multiple times of burn in process
+        n_step:
+            running step
+        lnlike:
+            lnlike(x, *args) is the log likelihood function
+        lnprior:
+            lnpost(x) is the log prior
+        pos_eps:
+            random magnitude for starting position
+        full:
+            if True, return sampler, pos, prob, state
+            otherwise, return sampler
+        shrink:
+            default "max": shrink to the maximum likelihood position
+
+        Return
+        ------
+        EnsembleSampler instance
+
+        """
+        if obs_tag is None:
+            # default obs_tag
+            obs_tag = np.ones_like(obs)
+
         if p0 is None:
+            # do best match for starting position
             p0 = self.best_match(obs, obs_err)
             print("@Regli.best_match: ", p0)
 
-        if lnpost is None:
-            lnpost = default_lnpost
-            print("@Regli: using the default *lnpost* function...")
+        if lnlike is None:
+            # default gaussian likelihood function
+            lnlike = default_lnlike
+            print("@Regli: using the default gaissian *lnlike* function...")
 
-        # set parameters
+        if lnprior is None:
+            # no prior is specified
+            lnpost = lnlike
+            print("@Regli: No prior is adopted ...")
+        else:
+            # use user-defined prior
+            print("@Regli: using user-defined *lnprior* function...")
+
+            def lnpost(*_args):
+                lnpost_value = lnprior(_args[0]) + lnlike(*_args)
+                if np.isfinite(lnpost_value):
+                    return lnpost_value
+                else:
+                    return -np.inf
+
+        # set parameters for sampler
         ndim = self.ndim
         nwalkers = 2 * ndim
 
         # initiate sampler
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
-                                  args=(self, obs, obs_err), threads=threads)
+                                  args=(self, obs, obs_err, obs_tag))
 
-        # initial position
+        # generate starting positions
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
 
         if isinstance(n_burnin, collections.Iterable):
-            # multiple burn-ins
+            # [o] multiple burn-ins
             for n_burnin_ in n_burnin:
                 # run mcmc
                 print("@Regli: running burn-in [{}]...".format(n_burnin_))
@@ -327,13 +380,12 @@ class Regli():
                 pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
 
         else:
-            # single burn-in
+            # [o] single burn-in
             # run mcmc
             print("@Regli: running burn-in [{}]...".format(n_burnin))
             pos, prob, state = sampler.run_mcmc(pos0, n_burnin)
 
             # shrink to a new position
-
             if shrink == "max":
                 p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
             else:
