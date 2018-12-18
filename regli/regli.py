@@ -284,7 +284,10 @@ class Regli():
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, obs, obs_err=0, p0=None, n_burnin=(100, 100), n_step=1000, lnpost=None, pos_eps=.1, full=True, shrink="max"):
+    def run_mcmc(self, obs, obs_err=0, p0=None, n_burnin=(100, 100),
+                 n_step=1000, lnpost=None, pos_eps=.1, threads=1, full=True,
+                 shrink="max"):
+        # TODO: lnprior, obs_tag
         if p0 is None:
             p0 = self.best_match(obs, obs_err)
             print("@Regli.best_match: ", p0)
@@ -298,7 +301,8 @@ class Regli():
         nwalkers = 2 * ndim
 
         # initiate sampler
-        sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost, args=(self, obs, obs_err))
+        sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
+                                  args=(self, obs, obs_err), threads=threads)
 
         # initial position
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
