@@ -58,7 +58,7 @@ def bisect_interval(edges=[1, 2, 3], x=.1):
         return -9, -9
 
 
-class Regli():
+class Regli:
     """ Regular Grid Linear Interpolator """
 
     def __init__(self, *grids):
@@ -77,6 +77,15 @@ class Regli():
         # self.set_values(values)
 
         self.me = 0.
+
+    def __repr__(self):
+        s = "\n".join([
+            "==== regli.Regli instance ====",
+            "".join(["grid shape:  ", self.grid_shape.__repr__()]),
+            "".join(["value shape: ", self.values.shape.__repr__()]),
+            "==============================",
+        ])
+        return s
 
     @staticmethod
     def init_from_flats(input_flats):
