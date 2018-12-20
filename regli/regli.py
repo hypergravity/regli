@@ -429,7 +429,7 @@ def test():
     x1 = np.linspace(-1, 1, 30)
     x2 = np.linspace(-1, 1, 30)
     x3 = np.linspace(-1, 1, 30)
-    regli = RegularGrid(x1, x2, x3)
+    regli = Regli(x1, x2, x3)
     f = lambda _x1, _x2, _x3: _x1 + _x2 + _x3
 
     flats = regli.flats
