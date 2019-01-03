@@ -73,9 +73,16 @@ class Regli:
         self.ind_dict = _[6]
 
         self.grid_shape = tuple([len(g) for g in grids])
-        self.value_shape = 1
+
+        # set values
+        self.set_values(np.array([]), test=True)
+        # self.value_shape = 1
         # self.set_values(values)
 
+        # define a subset for best match
+        self.best_match_mask = None
+
+        # mean error
         self.me = 0.
 
     def __repr__(self):
@@ -139,14 +146,16 @@ class Regli:
     def rgi_shape(self):
         return (*self.grid_shape, self.value_shape)
 
-    def set_values(self, values):
+    def set_values(self, values, test=False):
         values = np.array(values)
         assert values.ndim in (1, 2)
+
         if values.ndim == 2:
             self.values = np.array(values)
             self.value_shape = self.values.shape[1]
         elif values.ndim == 1:
-            assert len(values) == len(self.flats)
+            if not test:
+                assert len(values) == len(self.flats)
             self.values = np.array(values.reshape(-1, 1))
             self.value_shape = 1
         else:
@@ -417,10 +426,16 @@ class Regli:
             # return sampler only
             return sampler
 
+    def set_best_match_mask(self, mask):
+        # make a subset for best match search
+        self.best_match_mask = mask
+
     def best_match(self, obs, obs_err):
         """ return the best matched position
         """
-        ind_maxlnpost = best_match(self.values, self.me, obs, obs_err)
+        # constrained best match!!!
+        ind_maxlnpost = best_match(self.values, self.me, obs, obs_err,
+                                   mask=self.best_match_mask)
         return self.flats[ind_maxlnpost]
 
 

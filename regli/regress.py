@@ -13,6 +13,10 @@ def default_lnlike(x, r, obs, obs_err, obs_tag):
         return -np.inf
 
 
-def best_match(mod, mod_err, obs, obs_err):
+def best_match(mod, mod_err, obs, obs_err, mask=None):
     lnpost = - 0.5 * np.sum(((mod - obs) / (obs_err + mod_err)) ** 2., axis=1)
-    return np.nanargmax(lnpost)
+    if mask is None:
+        return np.nanargmax(lnpost)
+    else:
+        lnpost = np.ma.MaskedArray(lnpost, mask)
+        return np.nanargmax(lnpost)
