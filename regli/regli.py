@@ -62,6 +62,7 @@ class Regli:
     """ Regular Grid Linear Interpolator """
 
     def __init__(self, *grids):
+        self.redundant = False
         self.ndim = len(grids)
         _ = grid_to_meshflat(*grids)
         self.grids = _[0]
@@ -291,13 +292,15 @@ class Regli:
         v_interp = np.dot(w_neighb, v_neighb)[0]
         return v_interp
 
-    def __call__(self, *args):
+    def __call__(self, pos):
+        if self.redundant:
+            pos = pos[:self.ndim]
         if self.ndim == 3:
-            return self.interp3(*args)
+            return self.interp3(pos)
         elif self.ndim == 2:
-            return self.interp2(*args)
+            return self.interp2(pos)
         else:
-            return self.interpn(*args)
+            return self.interpn(pos)
 
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
