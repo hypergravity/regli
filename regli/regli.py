@@ -62,7 +62,7 @@ class Regli:
     """ Regular Grid Linear Interpolator """
 
     def __init__(self, *grids):
-        self.redundant = False
+
         self.ndim = len(grids)
         _ = grid_to_meshflat(*grids)
         self.grids = _[0]
