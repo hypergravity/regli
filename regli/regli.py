@@ -86,6 +86,9 @@ class Regli:
         # mean error
         self.me = 0.
 
+        # pre-proc parameters
+        self.set_pre_proc_ind()
+
     def __repr__(self):
         s = "\n".join([
             "==== regli.Regli instance ====",
@@ -94,6 +97,18 @@ class Regli:
             "==============================",
         ])
         return s
+
+    def set_pre_proc_ind(self, pre_proc_ind=None):
+        if pre_proc_ind is None:
+            self.pre_proc_ind = pre_proc_ind
+        else:
+            self.pre_proc_ind = list(pre_proc_ind)
+
+    def pre_proc(self, pos):
+        if self.pre_proc_ind is None:
+            return np.array(pos)
+        else:
+            return np.array(pos)[list(self.pre_proc_ind)]
 
     @staticmethod
     def init_from_flats(input_flats):
@@ -293,8 +308,10 @@ class Regli:
         return v_interp
 
     def __call__(self, pos):
-        if self.redundant:
-            pos = pos[:self.ndim]
+        # pre-proc of input pos
+        pos = self.pre_proc(pos)
+
+        # optimized for ndim = {2,3}
         if self.ndim == 3:
             return self.interp3(pos)
         elif self.ndim == 2:
