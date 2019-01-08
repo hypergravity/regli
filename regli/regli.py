@@ -381,7 +381,7 @@ class Regli:
             print("@Regli: using user-defined *lnprior* function...")
 
             def lnpost(*_args):
-                lnpost_value = lnprior(_args[0]) + lnlike(*_args)
+                lnpost_value = np.float(lnprior(_args[0])) + lnlike(*_args)
                 if np.isfinite(lnpost_value):
                     return lnpost_value
                 else:
