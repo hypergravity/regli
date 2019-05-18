@@ -323,8 +323,9 @@ class Regli:
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
     def run_mcmc(self, obs, obs_err=0, obs_tag=None, p0=None, n_burnin=(100, 100),
-                 n_step=1000, lnlike=None, lnprior=None, pos_eps=.1, full=True,
-                 shrink="max"):
+                 n_step=1000, lnlike=None, lnprior=None,
+                 lnlike_kwargs={}, lnprior_kwargs={},
+                 pos_eps=.1, full=True, shrink="max"):
         """ run MCMC for (obs, obs_err, obs_tag)
 
         Parameters
@@ -380,8 +381,9 @@ class Regli:
             # use user-defined prior
             print("@Regli: using user-defined *lnprior* function...")
 
-            def lnpost(*_args):
-                lnpost_value = np.float(lnprior(_args[0])) + lnlike(*_args)
+            def lnpost(*_args, **_kwargs):
+                lnpost_value = np.float(lnprior(_args[0], **_kwargs["lnprior_kwargs"])) + \
+                               lnlike(*_args, **_kwargs["lnlike_kwargs"])
                 if np.isfinite(lnpost_value):
                     return lnpost_value
                 else:
@@ -393,9 +395,11 @@ class Regli:
 
         # initiate sampler
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
-                                  args=(self, obs, obs_err, obs_tag))
+                                  args=(self, obs, obs_err, obs_tag),
+                                  kwargs=dict(lnprior_kwargs=lnprior_kwargs,
+                                              lnlike_kwargs=lnlike_kwargs))
 
-        # generate starting positions
+        # generate random starting positions
         pos0 = rand_pos(p0, nwalkers=nwalkers, eps=pos_eps)
 
         if isinstance(n_burnin, collections.Iterable):
@@ -410,12 +414,13 @@ class Regli:
                     p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
                 else:
                     p1 = np.median(pos, axis=0)
+                pos_std = np.std(sampler.flatchain, axis=0)*0.5
 
                 # reset sampler
                 sampler.reset()
 
                 # randomly generate new start position
-                pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
+                pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_std)
 
         else:
             # [o] single burn-in
@@ -428,12 +433,13 @@ class Regli:
                 p1 = sampler.flatchain[np.argmax(sampler.flatlnprobability)]
             else:
                 p1 = np.median(pos, axis=0)
+            pos_std = np.std(sampler.flatchain, axis=0) * 0.5
 
             # reset sampler
             sampler.reset()
 
             # randomly generate new start position
-            pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_eps)
+            pos0 = rand_pos(p1, nwalkers=nwalkers, eps=pos_std)
 
         # run mcmc
         print("@Regli: running chains [{}]...".format(n_step))

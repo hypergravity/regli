@@ -5,7 +5,7 @@ def costfun(x, r, v_obs, v_err=1.):
     return (r.interpn(x) - v_obs) / v_err
 
 
-def default_lnlike(x, r, obs, obs_err, obs_tag):
+def default_lnlike(x, r, obs, obs_err, obs_tag, **kwargs):
     lnpost = - 0.5 * np.sum(((r(x) - obs) / (obs_err + r.me))**2.*obs_tag)
     if np.isfinite(lnpost):
         return lnpost
