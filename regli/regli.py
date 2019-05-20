@@ -361,7 +361,12 @@ class Regli:
         """
         if obs_tag is None:
             # default obs_tag
-            obs_tag = np.ones_like(obs)
+            obs_tag = np.isfinite(obs)
+        else:
+            obs_tag = np.isfinite(obs) & obs_tag
+        # cope with bad obs
+        if np.sum(obs_tag) == 0:
+            return None
 
         if p0 is None:
             # do best match for starting position
@@ -371,7 +376,7 @@ class Regli:
         if lnlike is None:
             # default gaussian likelihood function
             lnlike = default_lnlike
-            print("@Regli: using the default gaissian *lnlike* function...")
+            print("@Regli: using the default gaussian *lnlike* function...")
 
         if lnprior is None:
             # no prior is specified
