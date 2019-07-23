@@ -325,7 +325,8 @@ class Regli:
     def run_mcmc(self, obs, obs_err=0, obs_tag=None, p0=None, n_burnin=(100, 100),
                  n_step=1000, lnlike=None, lnprior=None,
                  lnlike_kwargs={}, lnprior_kwargs={},
-                 pos_eps=.1, full=True, shrink="max"):
+                 pos_eps=.1, full=True, shrink="max",
+                 ndim=None, nwalkers=None):
         """ run MCMC for (obs, obs_err, obs_tag)
 
         Parameters
@@ -395,8 +396,10 @@ class Regli:
                     return -np.inf
 
         # set parameters for sampler
-        ndim = self.ndim
-        nwalkers = 2 * ndim
+        if ndim is None:
+            ndim = self.ndim
+        if nwalkers is None:
+            nwalkers = 2 * ndim
 
         # initiate sampler
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
