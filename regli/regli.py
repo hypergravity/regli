@@ -322,12 +322,12 @@ class Regli:
     def regress(self, x0, obs, obs_err, *args, **kwargs):
         return least_squares(costfun, x0, self, obs, obs_err, *args, **kwargs)
 
-    def run_mcmc(self, obs, obs_err=0, obs_tag=None, p0=None, n_burnin=(100, 100),
+    def run_mcmc(self, obs, obs_err=0, obs_weight=None, p0=None, n_burnin=(100, 100),
                  n_step=1000, lnlike=None, lnprior=None,
                  lnlike_kwargs={}, lnprior_kwargs={},
                  pos_eps=.1, full=True, shrink="max",
                  ndim=None, nwalkers=None):
-        """ run MCMC for (obs, obs_err, obs_tag)
+        """ run MCMC for (obs, obs_err, obs_weight)
 
         Parameters
         ----------
@@ -335,8 +335,8 @@ class Regli:
             observable
         obs_err:
             error of observation
-        obs_tag:
-            array(size(obs), 1 for good, 0 for bad.
+        obs_weight:
+            additional weight, array(size(obs), 1 for good, 0/np.nan for bad.
         p0:
             initial points
         n_burnin:
@@ -360,13 +360,13 @@ class Regli:
         EnsembleSampler instance
 
         """
-        if obs_tag is None:
-            # default obs_tag
-            obs_tag = np.isfinite(obs)
+        if obs_weight is None:
+            # default obs_weight
+            obs_weight = np.isfinite(obs) * 1
         else:
-            obs_tag = np.isfinite(obs) & obs_tag
+            obs_weight = np.isfinite(obs) * obs_weight
         # cope with bad obs
-        if np.sum(obs_tag) == 0:
+        if np.nansum(obs_weight) == 0:
             return None
 
         if p0 is None:
@@ -403,7 +403,7 @@ class Regli:
 
         # initiate sampler
         sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
-                                  args=(self, obs, obs_err, obs_tag),
+                                  args=(self, obs, obs_err, obs_weight),
                                   kwargs=dict(lnprior_kwargs=lnprior_kwargs,
                                               lnlike_kwargs=lnlike_kwargs))
 
@@ -461,14 +461,19 @@ class Regli:
             return sampler
 
     def set_best_match_mask(self, mask):
-        # make a subset for best match search
+        """make a subset for best match search
+
+        mask:
+            1 for bad, 0 for good
+        """
         self.best_match_mask = mask
 
-    def best_match(self, obs, obs_err):
-        """ return the best matched position
+    def best_match(self, obs, obs_err, obs_weight=None):
+        """ returns the best matched position
         """
         # constrained best match!!!
         ind_maxlnpost = best_match(self.values, self.me, obs, obs_err,
+                                   obs_weight=obs_weight,
                                    mask=self.best_match_mask)
         return self.flats[ind_maxlnpost]
 

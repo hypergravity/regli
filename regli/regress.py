@@ -5,19 +5,18 @@ def costfun(x, r, v_obs, v_err=1.):
     return (r.interpn(x) - v_obs) / v_err
 
 
-def default_lnlike(x, r, obs, obs_err, obs_tag=None, **kwargs):
-    if obs_tag is not None:
-        lnpost = - 0.5 * np.sum(((r(x) - obs) / (obs_err + r.me) * obs_tag)**2.)
+def default_lnlike(x, r, obs, obs_err, obs_weight=None, **kwargs):
+    res2 = ((r(x) - obs) / (obs_err + r.me)) ** 2.
+    if obs_weight is not None:
+        res2 *= obs_weight
+    if np.all(np.logical_not(np.isfinite(res2))):
+        # in case every element is nan
+        return  -np.inf
     else:
-        lnpost = - 0.5 * np.sum(((r(x) - obs) / (obs_err + r.me)) ** 2.)
-
-    if np.isfinite(lnpost):
-        return lnpost
-    else:
-        return -np.inf
+        lnpost = - 0.5 * np.nansum(res2, axis=1)
 
 
-def best_match(mod, mod_err, obs, obs_err, mask=None):
+def best_match(mod, mod_err, obs, obs_err, obs_weight=None, mask=None):
     """ search for the best match (min chi2) template in regli database
 
     Parameters
@@ -30,6 +29,8 @@ def best_match(mod, mod_err, obs, obs_err, mask=None):
         observations
     obs_err:
         errors of observations
+    obs_weight:
+        weight of observations, np.nan for bad values
     mask:
         1 for bad, 0 for good.
 
@@ -38,6 +39,8 @@ def best_match(mod, mod_err, obs, obs_err, mask=None):
     index of the best match template
     """
     res2 = ((mod - obs) / (obs_err + mod_err)) ** 2.
+    if obs_weight is not None:
+        res2 *= obs_weight
     ind_invalid = np.all(np.logical_not(np.isfinite(res2)), axis=1)
     lnpost = - 0.5 * np.nansum(res2, axis=1)
 
