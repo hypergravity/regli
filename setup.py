@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='regli',
-    version='2019.0811.0',
+    version='2019.0903.0',
     author='Bo Zhang',
     author_email='bozhang@nao.cas.cn',
     description='REgular Grid Linear Interpolator.',  # short description
