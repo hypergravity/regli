@@ -344,7 +344,8 @@ class Regli:
         n_step:
             running step
         lnlike:
-            lnlike(x, *args) is the log likelihood function
+            define your own log likelihood function:
+            lnlike(x, r, obs, obs_err, obs_weight=None, **kwargs)
         lnprior:
             lnpost(x) is the log prior
         pos_eps:
