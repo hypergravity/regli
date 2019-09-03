@@ -20,7 +20,7 @@ def default_lnlike(x, r, obs, obs_err, obs_weight=None, **kwargs):
         # in case every element is nan
         return -np.inf
     else:
-        return - 0.5 * np.nansum(res2, axis=1)
+        return - 0.5 * np.nansum(res2)
 
 
 def best_match(mod, mod_err, obs, obs_err, obs_weight=None, mask=None):
