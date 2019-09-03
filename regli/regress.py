@@ -6,14 +6,21 @@ def costfun(x, r, v_obs, v_err=1.):
 
 
 def default_lnlike(x, r, obs, obs_err, obs_weight=None, **kwargs):
-    res2 = ((r(x) - obs) / (obs_err + r.me)) ** 2.
+    # in case of outlier
+    try:
+        mod = r(x)
+    except Exception:
+        return -np.inf
+
+    # chi2
+    res2 = ((mod - obs) / (obs_err + r.me)) ** 2.
     if obs_weight is not None:
         res2 *= obs_weight
     if np.all(np.logical_not(np.isfinite(res2))):
         # in case every element is nan
-        return  -np.inf
+        return -np.inf
     else:
-        lnpost = - 0.5 * np.nansum(res2, axis=1)
+        return - 0.5 * np.nansum(res2, axis=1)
 
 
 def best_match(mod, mod_err, obs, obs_err, obs_weight=None, mask=None):
