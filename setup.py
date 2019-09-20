@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='regli',
-    version='2019.0903.0',
+    version='2019.0920.0',
     author='Bo Zhang',
     author_email='bozhang@nao.cas.cn',
     description='REgular Grid Linear Interpolator.',  # short description
@@ -23,5 +23,5 @@ setuptools.setup(
                  "Topic :: Scientific/Engineering :: Astronomy"],
     package_dir={'regli': 'regli'},
     include_package_data=True,
-    requires=['numpy', 'scipy', 'emcee']
+    requires=['numpy', 'scipy', 'emcee', 'astroslam', 'joblib']
 )
