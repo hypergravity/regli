@@ -111,14 +111,16 @@ class Regli:
             return np.array(pos)[list(self.pre_proc_ind)]
 
     @staticmethod
-    def init_from_flats(input_flats):
+    def init_from_flats(input_flats, verbose=False):
         """ try to parse flats and return a Regli instance
         This is a slow process and takes 86 min to parse a 400,000 point grid.
 
         Parameters
         ----------
         input_flats:
-            flatten
+            flats
+        verbose:
+            if True, print verbose info
 
         Return
         ------
@@ -141,6 +143,7 @@ class Regli:
         nrow = np.prod(r.grid_shape)
         # ind_values = np.zeros((nrow,), np.int)
 
+        c_missing = 0
         for i in range(len(r.flats)):
             # for each flat
             flat_ = r.flats[i]
@@ -154,7 +157,11 @@ class Regli:
             else:
                 # data missing
                 r.ind_dict[tuple(flat_ind_)] = None
-                print("@Regli: grid value missing --> ", flat_)
+                c_missing += 1
+                if verbose:
+                    print("@Regli: grid value missing --> ", flat_)
+
+            print("@Regli: {} values missing!".format(c_missing))
 
         return r
 
