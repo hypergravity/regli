@@ -161,7 +161,7 @@ class Regli:
                 if verbose:
                     print("@Regli: grid value missing --> ", flat_)
 
-            print("@Regli: {} values missing!".format(c_missing))
+        print("@Regli: {} values missing!".format(c_missing))
 
         return r
 
