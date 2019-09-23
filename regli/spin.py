@@ -89,12 +89,19 @@ class SpIn(object):
         mock_ivar_rvin = []
         print("@SpIn: add noise to spectra ...")
         for iband in range(self.nband):
+            # for each band, generate spectra + RV
             this_mock_flux_rvi = np.array([
                 interp1d(wave[iband] * (1 + mock_z[i]), mock_flux[iband][i],
                          kind="linear", bounds_error=False,
                          fill_value=np.nan)(wave_interp[iband])
                 for i in range(nmock)])
 
+            # check nan
+            this_mock_ivar_rvin = np.where(np.isfinite(this_mock_flux_rvin),
+                                           this_mock_ivar_rvin, fill_ivar)
+            this_mock_flux_rvin = np.where(np.isfinite(this_mock_flux_rvin),
+                                           this_mock_flux_rvin, fill_flux)
+            # simulate S/N
             if mock_snr > 0:
                 # add noise
                 this_mock_flux_rvin, this_mock_ivar_rvin = add_gaussian_noise_to_spec(
@@ -103,20 +110,13 @@ class SpIn(object):
                 mock_ivar_rvin.append(this_mock_ivar_rvin)
             else:
                 # return original interpolated spec
+
                 mock_flux_rvin.append(this_mock_flux_rvi)
                 mock_ivar_rvin.append(this_mock_flux_rvi*0)
-        mock_flux_rvin = np.array(mock_flux_rvin)
-        mock_ivar_rvin = np.array(mock_ivar_rvin)
-
-        # check nan
-        print("@SpIn: check spectra ...")
-        mock_ivar_rvin = np.where(np.isfinite(mock_flux_rvin), mock_ivar_rvin, fill_ivar)
-        mock_flux_rvin = np.where(np.isfinite(mock_flux_rvin), mock_flux_rvin, fill_flux)
 
         if not norm:
             return mock_flux_rvin, mock_ivar_rvin
         else:
-
             comb_norm_kwargs = dict(dwave=20,
                                     p=(1e-06, 1e-07),
                                     q=0.6,
