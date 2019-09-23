@@ -97,10 +97,11 @@ class SpIn(object):
                 for i in range(nmock)])
 
             # check nan
-            this_mock_ivar_rvin = np.where(np.isfinite(this_mock_flux_rvin),
-                                           this_mock_ivar_rvin, fill_ivar)
-            this_mock_flux_rvin = np.where(np.isfinite(this_mock_flux_rvin),
-                                           this_mock_flux_rvin, fill_flux)
+            this_mock_flux_rvi = np.where(np.isfinite(this_mock_flux_rvi),
+                                           this_mock_flux_rvi, fill_flux)
+            # this_mock_flux_rvin = np.where(np.isfinite(this_mock_flux_rvin),
+            #                                this_mock_flux_rvin, fill_flux)
+
             # simulate S/N
             if mock_snr > 0:
                 # add noise
