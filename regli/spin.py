@@ -105,6 +105,8 @@ class SpIn(object):
                 # return original interpolated spec
                 mock_flux_rvin.append(this_mock_flux_rvi)
                 mock_ivar_rvin.append(this_mock_flux_rvi*0)
+        mock_flux_rvin = np.array(mock_flux_rvin)
+        mock_ivar_rvin = np.array(mock_ivar_rvin)
 
         # check nan
         print("@SpIn: check spectra ...")
