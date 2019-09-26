@@ -1,4 +1,4 @@
-## regli
+## regli [![DOI](https://zenodo.org/badge/153591296.svg)](https://zenodo.org/badge/latestdoi/153591296)
 REgular Grid Linear Interpolator, capable to deal with spectral library or similar model data.
 
 ## author
@@ -11,6 +11,7 @@ Bo Zhang, [bozhang@nao.cas.cn](mailto:bozhang@nao.cas.cn)
 ## install
 - for the latest **stable** version: `pip install regli`
 - for the latest **github** version: `pip install git+git://github.com/hypergravity/regli`
+- for the Zenodo version: [https://zenodo.org/record/3461514](https://zenodo.org/record/3461514)
 
 ## test
 
@@ -55,3 +56,17 @@ regli.interpn(pos)              # method 1 is equivalent to 2
 regli.interp3(pos)              # this is accelerated for 3D
 
 ```
+
+## How to cite the code
+BibTex:
+```
+@misc{https://doi.org/10.5281/zenodo.3461514,
+  doi = {10.5281/zenodo.3461514},
+  url = {https://zenodo.org/record/3461514},
+  author = {Zhang, Bo},
+  title = {hypergravity/regli: The Zenodo version},
+  publisher = {Zenodo},
+  year = {2019}
+}
+```
+Please go to [https://search.datacite.org/works/10.5281/zenodo.3461514](https://search.datacite.org/works/10.5281/zenodo.3461514) for other formats.
