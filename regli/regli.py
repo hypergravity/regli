@@ -7,12 +7,13 @@ Created on Mon Sep 24 14:24:15 2018
 """
 
 import bisect
+import collections
 from itertools import product
 
 import numpy as np
-from scipy.optimize import least_squares
 from emcee import EnsembleSampler
-import collections
+from laspec.qconv import conv_spec_Gaussian, conv_spec_Rotation
+from scipy.optimize import least_squares
 
 from .regress import costfun, default_lnlike, best_match
 
@@ -268,7 +269,6 @@ class Regli:
             if None in (i_000, i_001, i_010, i_011, i_100, i_101, i_110, i_111):
                 return np.ones((self.values.shape[1],)) * null_value
 
-
             w = np.array([v_000, v_001, v_010, v_011, v_100, v_101, v_110, v_111]).reshape(-1, 1) / v_tot
             # specs = spec[np.array([i_000, i_001, i_010, i_011, i_100, i_101, i_110, i_111])]
             # figure();plot(spec_wm);plot(specs.T)
@@ -496,12 +496,35 @@ class Regli:
 
     # predict spectrum
     def predict_spectrum(self, pstar, R_hi=None, R_lo=None, vsini=0, epsilon=0.6, rv=0, wave_new=None, snr=None):
+        """
+        Parameters
+        ----------
+        pstar:
+            stellar parameters
+        R_hi:
+            original resolution
+        R_lo:
+            target resolution
+        vsini:
+            projected rotational velocity
+        epsilon:
+            limb-darkening coefficient
+        rv:
+            radial velocity
+        wave_new:
+            target wavelength grid
+        snr:
+            signal-to-noise ratio
 
+        Return
+        ------
+        flux:
+            spectral flux
+        """
         # interpolate flux
         flux = self.interpn(pstar)
         # degrade resolution
         if R_hi is not None and R_lo is not None:
-            from laspec.qconv import conv_spec_Gaussian, conv_spec_Rotation
             flux = conv_spec_Gaussian(self.wave, flux, R_hi=R_hi, R_lo=R_lo, wave_new=self.wave)
         # convolve vsini
         if vsini > 0:
