@@ -16,6 +16,9 @@ import collections
 
 from .regress import costfun, default_lnlike, best_match
 
+# speed of light
+SOL = 299792.458
+
 
 def rand_pos(p0, nwalkers, eps=.1):
     p0 = np.array(p0)
@@ -60,6 +63,7 @@ def bisect_interval(edges=[1, 2, 3], x=.1):
 
 class Regli:
     """ Regular Grid Linear Interpolator """
+    wave = None
 
     def __init__(self, *grids):
 
@@ -176,6 +180,7 @@ class Regli:
         if values.ndim == 2:
             self.values = np.array(values)
             self.value_shape = self.values.shape[1]
+            self.set_wave(np.arange(self.values.shape[1]))  # only available when 2D
         elif values.ndim == 1:
             if not test:
                 assert len(values) == len(self.flats)
@@ -484,6 +489,29 @@ class Regli:
                                    obs_weight=obs_weight,
                                    mask=self.best_match_mask)
         return self.flats[ind_maxlnpost]
+
+    # set wavelength
+    def set_wave(self, wave):
+        self.wave = wave
+
+    # predict spectrum
+    def predict_spectrum(self, pstar, R_hi=None, R_lo=None, vsini=0, epsilon=0.6, rv=0, wave_new=None, snr=None):
+
+        # interpolate flux
+        flux = self.interpn(pstar)
+        # degrade resolution
+        if R_hi is not None and R_lo is not None:
+            from laspec.qconv import conv_spec_Gaussian, conv_spec_Rotation
+            flux = conv_spec_Gaussian(self.wave, flux, R_hi=R_hi, R_lo=R_lo, wave_new=self.wave)
+        # convolve vsini
+        if vsini > 0:
+            flux = conv_spec_Rotation(self.wave, flux, vsini=vsini, epsilon=epsilon, wave_new=self.wave)
+        # radial velocity
+        flux = np.interp(wave_new, self.wave * (1 + rv / SOL), flux)
+        # add Gaussian noise
+        if snr is not None:
+            flux *= np.random.normal(1, 1 / snr, flux.shape)
+        return flux
 
 
 def test():
