@@ -523,12 +523,16 @@ class Regli:
         """
         # interpolate flux
         flux = self.interpn(pstar)
+        # wavelength
+        if wave_new is None:
+            wave_new = self.wave
+
         # degrade resolution
         if R_hi is not None and R_lo is not None:
-            flux = conv_spec_Gaussian(self.wave, flux, R_hi=R_hi, R_lo=R_lo, wave_new=self.wave)
+            flux = conv_spec_Gaussian(self.wave, flux, R_hi=R_hi, R_lo=R_lo, wave_new=self.wave)[1]
         # convolve vsini
         if vsini > 0:
-            flux = conv_spec_Rotation(self.wave, flux, vsini=vsini, epsilon=epsilon, wave_new=self.wave)
+            flux = conv_spec_Rotation(self.wave, flux, vsini=vsini, epsilon=epsilon, wave_new=self.wave)[1]
         # radial velocity
         flux = np.interp(wave_new, self.wave * (1 + rv / SOL), flux)
         # add Gaussian noise
