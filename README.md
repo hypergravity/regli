@@ -9,8 +9,8 @@ Bo Zhang, [bozhang@nao.cas.cn](mailto:bozhang@nao.cas.cn)
 - [https://pypi.org/project/regli/](https://pypi.org/project/regli/)
 
 ## install
-- for the latest **stable** version: `pip install regli`
-- for the latest **github** version: `pip install git+git://github.com/hypergravity/regli`
+- for the latest **stable** version: `pip install -U regli`
+- for the latest **github** version: `pip install -U git+git://github.com/hypergravity/regli`
 - for the Zenodo version: [https://zenodo.org/record/3461514](https://zenodo.org/record/3461514)
 
 ## test
