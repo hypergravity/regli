@@ -138,7 +138,7 @@ class Regli:
         # determine grid
         grids = [np.unique(input_flats[:, i]) for i in range(ndim)]
 
-        # initiate Regli
+        # initiat Regli
         r = Regli(*grids)
 
         # determine eps
@@ -415,7 +415,7 @@ class Regli:
             nwalkers = 2 * ndim
 
         # initiate sampler
-        sampler = EnsembleSampler(nwalkers, ndim, lnpostfn=lnpost,
+        sampler = EnsembleSampler(nwalkers, ndim, log_prob_fn=lnpost,
                                   args=(self, obs, obs_err, obs_weight),
                                   kwargs=dict(lnprior_kwargs=lnprior_kwargs,
                                               lnlike_kwargs=lnlike_kwargs))
