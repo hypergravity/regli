@@ -518,7 +518,7 @@ class Regli:
             this_param = para_trial[i_trial]
             this_flux = self.interpn(this_param)
             if np.isfinite(this_flux[0]):
-                flux_list.append(normalize_spectrum_spline(self.wave, this_flux, niter=2)[1])
+                flux_list.append(normalize_spectrum_spline(self.wave, this_flux, niter=2)[0])
                 para_list.append(this_param)
                 n_success += 1
                 print("i_trial = {}, progress: [{}/{}]".format(i_trial, n_success, n_collect))
