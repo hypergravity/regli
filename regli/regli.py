@@ -13,6 +13,8 @@ from itertools import product
 import numpy as np
 from emcee import EnsembleSampler
 from laspec.qconv import conv_spec_Gaussian, conv_spec_Rotation
+from laspec.normalization import normalize_spectrum_spline
+from laspec.ccf import RVM
 from scipy.optimize import least_squares
 
 from .regress import costfun, default_lnlike, best_match
@@ -493,6 +495,36 @@ class Regli:
     # set wavelength
     def set_wave(self, wave):
         self.wave = wave
+
+    def generate_rvm(self, para_trial, n_collect=1000):
+        """
+        Parameters
+        ----------
+        para_trial:
+            trial list
+        n_collect:
+            collect n_collect spectra if n_collect > 0
+
+        Return
+        ------
+        RVM instance
+        """
+        para_list = []
+        flux_list = []
+
+        n_trial = len(para_trial)
+        n_success = 0
+        for i_trial in range(n_trial):
+            this_param = para_trial[i_trial]
+            this_flux = self.interpn(this_param)
+            if np.isfinite(this_flux[0]):
+                flux_list.append(normalize_spectrum_spline(self.wave, this_flux, niter=2))
+                para_list.append(this_param)
+                n_success += 1
+                print("i_trial = {}, progress: [{}/{}]".format(i_trial, n_success, n_collect))
+            if 0 < n_collect <= n_success:
+                break
+        return RVM(np.asarray(para_list), self.wave, np.asarray(flux_list))
 
     # predict spectrum
     def predict_spectrum(self, pstar, R_hi=None, R_lo=None, vsini=0, epsilon=0.6, rv=0, wave_new=None, snr=None):
