@@ -1,6 +1,19 @@
 ## regli [![DOI](https://zenodo.org/badge/153591296.svg)](https://zenodo.org/badge/latestdoi/153591296)
 REgular Grid Linear Interpolator, capable to deal with spectral library or similar model data.
 
+This package implements the basic *bilinear interpolation* in multi-dimension.
+However, as commented in *Numerical Recipes*: 
+
+Bilinear interpolation is frequently “close enough for government work.”
+As the interpolating point wanders from grid square to grid square,
+the interpolated func- tion value changes continuously.
+However, the gradient of the interpolated function changes
+discontinuously at the boundaries of each grid square.
+
+As a consequence, the interpolation model can not, in general, 
+be used as a forward model and incorporated with 
+Gradient-based optimization algorithms to estimate parameters.
+
 ## author
 Bo Zhang, [bozhang@nao.cas.cn](mailto:bozhang@nao.cas.cn)
 
