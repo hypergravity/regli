@@ -34,7 +34,7 @@ def grid_to_meshflat(*grids):
     # get dimensions
     Ns = [len(_) for _ in grids]
     # make indices of grids
-    grids_ind = [np.arange(_, dtype=np.int) for _ in Ns]
+    grids_ind = [np.arange(_, dtype=int) for _ in Ns]
     # make mesh_grids
     meshs = np.meshgrid(*grids)
     # make mesh_ind
