@@ -1,2 +1,2 @@
 from .regli import Regli, test
-__version__ = "2022.0722.0"
+__version__ = "2023.0829.0"

@@ -403,7 +403,7 @@ class Regli:
             print("@Regli: using user-defined *lnprior* function...")
 
             def lnpost(*_args, **_kwargs):
-                lnpost_value = np.float(lnprior(_args[0], **_kwargs["lnprior_kwargs"])) + \
+                lnpost_value = float(lnprior(_args[0], **_kwargs["lnprior_kwargs"])) + \
                                lnlike(*_args, **_kwargs["lnlike_kwargs"])
                 if np.isfinite(lnpost_value):
                     return lnpost_value

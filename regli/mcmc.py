@@ -23,7 +23,7 @@ def sample_covariance(flatchain):
     ndim = flatchain.shape[1]
 
     # initiate cov_
-    cov_ = np.zeros((ndim, ndim), np.float)
+    cov_ = np.zeros((ndim, ndim), float)
 
     ind_tril = np.tril_indices(ndim)
     for irow, icol in zip(*ind_tril):
