@@ -1,3 +1,5 @@
+__all__ = ["find_neighboring_indices"]
+
 import bisect
 from typing import Iterable
 
@@ -39,24 +41,24 @@ def find_neighboring_indices(seq: Iterable, a: int) -> tuple[int, int]:
     return -1, -1
 
 
-def f(a):
+def _f(a):
     seq = [1, 2, 3, 4]
     print(f"{a} \t", find_neighboring_indices(seq, a))
 
 
-def f1(a):
+def _f1(a):
     seq = [1, 2, 3, 4]
     print(f"{a} \t", bisect.bisect_left(seq, a), bisect.bisect_right(seq, a))
 
 
 if __name__ == "__main__":
-    f(0.999)
-    f(1)
-    f(1.5)
-    f(2)
-    f(2.5)
-    f(3)
-    f(3.5)
-    f(4)
-    f(4.5)
+    _f(0.999)
+    _f(1)
+    _f(1.5)
+    _f(2)
+    _f(2.5)
+    _f(3)
+    _f(3.5)
+    _f(4)
+    _f(4.5)
     f1(5)
